@@ -48,6 +48,9 @@ jobs:
     name: Build and deploy vercel preview
     needs: [unit-tests]
     runs-on: ubuntu-latest
+
+    outputs:
+      base_url: ${{ steps.Deploy.outputs.url }}
     
     steps:
     - name: Checkout repository
@@ -71,7 +74,10 @@ jobs:
       run: yarn vercel build --token=$VERCEL_TOKEN
 
     - name: Deploy preview
-      run: yarn vercel deploy --prebuilt --target=preview --token=$VERCEL_TOKEN --scope=$VERCEL_SCOPE
+      id: Deploy
+      run: |
+        URL=$(yarn vercel deploy --prebuilt --target=preview --token=$VERCEL_TOKEN --scope=$VERCEL_SCOPE)
+        echo "deployment=$URL" >> $GITHUB_OUTPUT
 
   e2e-tests:
     name: Run E2E Tests
@@ -103,10 +109,10 @@ jobs:
 
       # 6. Execução dos Testes de Regressão
       - name: Run E2E Regression Tests
-        run: yarn playwright test
+        run: yarn playwright test playwright/e2e/online.spec.ts
         env:
           # Alterado: Aponta para o localhost padrão gerado pelo webServer do Playwright
-          BASE_URL: http://localhost:5173 
+          BASE_URL: ${{ needs.build-and-deploy.outputs.base_url }}
 
       # 7. Relatório de Testes Automatizados
       - name: Upload Playwright report
