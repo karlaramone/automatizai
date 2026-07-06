@@ -1,4 +1,3 @@
-import 'dotenv/config'
 import pg from 'pg'
 import { Kysely, PostgresDialect } from 'kysely'
 import { Database } from './schema'
