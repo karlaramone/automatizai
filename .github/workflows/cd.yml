@@ -60,14 +60,11 @@ jobs:
       - name: Install dependencies
         run: yarn install
 
-      - name: Link preview project
-        run: yarn supabase link --project-ref ${{ secrets.SUPABASE_PREVIEW_PROJECT_REF }} --password ${{ secrets.SUPABASE_DB_PASSWORD_PREVIEW }} --yes
-
       - name: Push migrations to preview
-        run: yarn supabase db push --password ${{ secrets.SUPABASE_DB_PASSWORD_PREVIEW }}
+        run: yarn supabase db push --db-url "${{ secrets.DATABASE_URL_PREVIEW }}"
 
       - name: Deploy edge functions to preview
-        run: yarn supabase functions deploy credit-analysis
+        run: yarn supabase functions deploy credit-analysis --project-ref ${{ secrets.SUPABASE_PREVIEW_PROJECT_REF }} --use-api
 
       - name: Set preview function secrets
         run: yarn supabase secrets set USE_MOCK_CREDIT_ANALYSIS=true --project-ref ${{ secrets.SUPABASE_PREVIEW_PROJECT_REF }}
@@ -167,14 +164,11 @@ jobs:
       - name: Install dependencies
         run: yarn install
 
-      - name: Link production project
-        run: yarn supabase link --project-ref ${{ secrets.SUPABASE_PROD_PROJECT_REF }} --password ${{ secrets.SUPABASE_DB_PASSWORD_PROD }} --yes
-
       - name: Push migrations to production
-        run: yarn supabase db push --password ${{ secrets.SUPABASE_DB_PASSWORD_PROD }}
+        run: yarn supabase db push --db-url "${{ secrets.DATABASE_URL_PROD }}"
 
       - name: Deploy edge functions to production
-        run: yarn supabase functions deploy credit-analysis
+        run: yarn supabase functions deploy credit-analysis --project-ref ${{ secrets.SUPABASE_PROD_PROJECT_REF }} --use-api
 
   deploy-production:
     name: Deploy to Production

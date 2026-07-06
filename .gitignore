@@ -32,3 +32,4 @@ dist-ssr
 
 .vercel
 .env*
+!.env.test.example

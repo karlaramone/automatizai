@@ -10,6 +10,8 @@
     "lint": "eslint .",
     "preview": "vite preview",
     "test": "vitest",
+    "test:e2e": "playwright test",
+    "test:e2e:preview": "node scripts/run-e2e-preview.mjs",
     "supabase": "supabase"
   },
   "dependencies": {

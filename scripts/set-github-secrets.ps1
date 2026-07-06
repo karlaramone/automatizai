@@ -29,10 +29,14 @@ $prodDbPasswordPlain = [Runtime.InteropServices.Marshal]::PtrToStringAuto(
     [Runtime.InteropServices.Marshal]::SecureStringToBSTR($prodDbPassword)
 )
 
+$encodedProdPassword = [uri]::EscapeDataString($prodDbPasswordPlain)
+$databaseUrlProd = "postgresql://postgres.${ProdRef}:${encodedProdPassword}@aws-1-us-east-1.pooler.supabase.com:5432/postgres"
+
 gh secret set SUPABASE_ACCESS_TOKEN --body $supabaseToken
 gh secret set SUPABASE_PREVIEW_PROJECT_REF --body $PreviewRef
 gh secret set SUPABASE_PROD_PROJECT_REF --body $ProdRef
 gh secret set DATABASE_URL_PREVIEW --body $databaseUrlPreview
+gh secret set DATABASE_URL_PROD --body $databaseUrlProd
 gh secret set SUPABASE_DB_PASSWORD_PREVIEW --body $previewDbPassword
 gh secret set SUPABASE_DB_PASSWORD_PROD --body $prodDbPasswordPlain
 

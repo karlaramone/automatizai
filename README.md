@@ -82,6 +82,57 @@ Pronto! O banco e as functions estarão configurados.
 
 ---
 
+## Ambientes Preview e Produção
+
+O projeto usa **dois projetos Supabase**:
+
+| Ambiente | Project ref | Uso |
+|----------|-------------|-----|
+| **Produção** | `hntnfpmsjaaoehlxybin` | Usuários reais, deploy Production na Vercel |
+| **Preview** | `rbinxzqgwuvfzhdphjfy` | E2E no CI, deploy Preview na Vercel |
+
+### Variáveis na Vercel
+
+Configure por escopo em **Project Settings → Environment Variables**:
+
+- **Production:** `VITE_SUPABASE_*` apontando para `hntnfpmsjaaoehlxybin`
+- **Preview:** `VITE_SUPABASE_*` apontando para `rbinxzqgwuvfzhdphjfy`
+
+Variáveis: `VITE_SUPABASE_URL`, `VITE_SUPABASE_PROJECT_ID`, `VITE_SUPABASE_PUBLISHABLE_KEY`.
+
+> `VITE_*` são embutidas no bundle em tempo de build — cada ambiente precisa do seu próprio build.
+
+### Pipeline de CD (`.github/workflows/cd.yml`)
+
+```
+Unit Tests → Supabase Preview → Deploy Vercel Preview → E2E → Supabase Prod → Deploy Production
+```
+
+1. **Supabase preview:** `db push --db-url` + `functions deploy --project-ref` (sem `supabase link`)
+2. **Build preview:** `vercel pull --environment=preview` → `vercel build` → deploy preview
+3. **E2E:** testes contra URL de preview + `DATABASE_URL_PREVIEW`
+4. **Supabase prod:** migrações e functions no projeto de produção
+5. **Deploy production:** `vercel pull --environment=production` → `vercel build --prod` → deploy prod
+
+### Por que não usamos `vercel promote`?
+
+O job original fazia `vercel promote` do deploy de preview para produção. Isso **reutiliza o mesmo artefato** gerado com variáveis `VITE_*` de **preview** — produção continuaria apontando para o Supabase de preview.
+
+**Solução adotada:** após E2E passarem, um **build de produção dedicado** (`vercel pull --environment=production` + `vercel build --prod`) gera um bundle novo com credenciais de produção. Comportamento equivalente ao objetivo do promote, sem o risco de credenciais erradas no bundle.
+
+### E2E local contra preview
+
+Por padrão, `yarn playwright test` usa `.env` (geralmente produção). Para testar contra preview:
+
+```bash
+cp .env.test.example .env.test   # preencha com credenciais do preview
+yarn test:e2e:preview
+```
+
+O script carrega `.env.test` e sobe o Vite em modo `test` com as variáveis de preview.
+
+---
+
 ## Estrutura Principal
 
 ```

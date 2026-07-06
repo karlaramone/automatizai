@@ -12,7 +12,8 @@ const __filename = fileURLToPath(import.meta.url);
 const __dirname = path.dirname(__filename);
 
 if (!process.env.CI && !process.env.DATABASE_URL) {
-  dotenv.config({ path: path.resolve(__dirname, '.env') });
+  const envFile = process.env.E2E_ENV === 'preview' ? '.env.test' : '.env';
+  dotenv.config({ path: path.resolve(__dirname, envFile) });
 }
 
 /**
@@ -105,7 +106,7 @@ export default defineConfig({
     process.env.CI && process.env.BASE_URL?.startsWith('http')
       ? undefined
       : {
-          command: 'yarn dev',
+          command: process.env.E2E_ENV === 'preview' ? 'yarn vite --mode test' : 'yarn dev',
           url: 'http://localhost:5173',
           reuseExistingServer: !process.env.CI,
         },
